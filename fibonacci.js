@@ -29,7 +29,7 @@ let numero = 20;
 // Verificando se o número pertence a sequência de Fibonacci
 let pertence = verificaFibonacci(numero);
 
-// Exibindo o resultado
+// Resultado
 if (pertence) {
     console.log(`O número ${numero} pertence a sequência de Fibonacci.`);
 } else {
