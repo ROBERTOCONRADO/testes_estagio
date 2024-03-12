@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Descobrir Interruptores</title>
+<style>
+  /* Estilos opcionais para melhorar a aparência */
+  #quarto, #cozinha, #banheiro {
+    width: 100px;
+    height: 100px;
+    background-color: black; /* Definindo uma cor inicial */
+    margin-top: 1000px;
+    margin-right: 100px;
+    color: brown;
+  } 
+  .casa {
+    display: flex;
+  }
+</style>
+</head>
+<body>
+
+<button onclick="ligarInterruptor(1); verificarInterruptores()">Interruptor 1</button>
+<button onclick="ligarInterruptor(2); verificarInterruptores()">Interruptor 2</button>
+<button onclick="ligarInterruptor(3); verificarInterruptores()">Interruptor 3</button>
+
+<div class="casa">
+  <div id="quarto">Quarto</div>
+  <div id="cozinha">Cozinha</div>
+  <div id="banheiro">Banheiro</div>
+</div>
+
+<div id="escolherSala">
+  <p>Escolha o cômodo que deseja visitar:</p>
+  <button onclick="visitarSalaLampadas('quarto')">Quarto</button>
+  <button onclick="visitarSalaLampadas('cozinha')">Cozinha</button>
+  <button onclick="visitarSalaLampadas('banheiro')">Banheiro</button>
+</div>
+
+<div id="log"></div>
+
+<script>
+var logDiv = document.getElementById('log');
+var interruptores = [false, false, false]; // Status inicial dos interruptores
+var lampadas = [false, false, false]; // Status inicial das lâmpadas
+var salaLampadasVisitada = 0;
+var trajetoriaUsuario = [];
+var interruptorAceso = -1; // Interruptor que foi aceso na primeira visita''
+
+function mudarCor(cor, ligado) {
+  var elemento = document.getElementById(cor);
+  elemento.style.backgroundColor = ligado ? 'yellow' : 'black';
+}
+
+function ligarInterruptor(numero) {
+  var cor;
+  switch(numero) {
+    case 1:
+      cor = 'quarto';
+      break;
+    case 2:
+      cor = 'cozinha';
+      break;
+    case 3:
+      cor = 'banheiro';
+      break;
+    default:
+      console.log("Interruptor inválido!");
+      return;
+  }
+  
+  var lampadaIndex = numero - 1;
+  var botaoInterruptor = document.getElementsByTagName('button')[numero - 1]; // Selecionando o botão de interruptor correspondente
+  
+  if (!interruptores[lampadaIndex]) {
+    mudarCor(cor, true);
+    interruptores[lampadaIndex] = true;
+    lampadas[lampadaIndex] = true;
+    botaoInterruptor.innerHTML = "Ligado"; // Atualizando o texto do botão para "Ligado"
+    trajetoriaUsuario.push("Interruptor " + numero + " ligado.");
+    if (interruptorAceso === -1) { // Na primeira visita, registramos qual interruptor foi ligado
+      interruptorAceso = numero;
+    }
+  } else {
+    mudarCor(cor, false);
+    interruptores[lampadaIndex] = false;
+    lampadas[lampadaIndex] = false;
+    botaoInterruptor.innerHTML = "Interruptor " + numero; // Revertendo o texto do botão para o padrão
+    trajetoriaUsuario.push("Interruptor " + numero + " desligado.");
+  }
+}
+
+
+function verificarInterruptores() {
+  var count = 0;
+  for (var i = 0; i < interruptores.length; i++) {
+    if (interruptores[i]) {
+      count++;
+    }
+  }
+  if (count >= 2) {
+    document.getElementById('escolherSala').style.display = 'block';
+  }
+}
+
+function visitarSalaLampadas(sala) {
+  if (salaLampadasVisitada === 0) { // Primeira visita
+    salaLampadasVisitada++;
+    trajetoriaUsuario.push("Visitando o " + sala + " pela primeira vez.");
+    mostrarTrajetoria();
+    mostrarStatusLampadas(sala);
+    document.getElementById('escolherSala').style.display = 'none';
+  } else if (salaLampadasVisitada === 1) { // Segunda visita
+    salaLampadasVisitada++;
+    trajetoriaUsuario.push("Visitando o " + sala + " pela segunda vez.");
+    mostrarTrajetoria();
+    mostrarStatusLampadas(sala);
+    document.getElementById('escolherSala').style.display = 'none';
+    verificarConclusao();
+  } else {
+    alert("Você já visitou todos os quartos duas vezes.");
+  }
+}
+
+function mostrarTrajetoria() {
+  logDiv.innerHTML = "<h3>Trajetória do usuário:</h3>";
+  trajetoriaUsuario.forEach(function (mensagem) {
+    var p = document.createElement('p');
+    p.textContent = mensagem;
+    logDiv.appendChild(p);
+  });
+}
+
+function mostrarStatusLampadas(salaEscolhida) {
+  for (var i = 0; i < lampadas.length; i++) {
+    var estado = lampadas[i] ? "acesa" : "apagada";
+    if (salaEscolhida === undefined || salaEscolhida === 'quarto' && i === 0 || salaEscolhida === 'cozinha' && i === 1 || salaEscolhida === 'banheiro' && i === 2) {
+      trajetoriaUsuario.push("Lâmpada " + (i + 1) + " está " + estado);
+    }
+  }
+  mostrarTrajetoria();
+}
+
+function verificarConclusao() {
+  var interruptorSegundoAceso = (interruptorAceso % 3) + 1; // Calcula o próximo interruptor
+  var lampadaControladaPorPrimeiro = lampadas[interruptorAceso - 1];
+  var lampadaControladaPorSegundo = lampadas[interruptorSegundoAceso - 1];
+  var conclusao = "Na primeira visita, o interruptor " + interruptorAceso + " controla a lâmpada ";
+  if (lampadaControladaPorPrimeiro) {
+    conclusao += "quarto.";
+  } else if (lampadaControladaPorSegundo) {
+    conclusao += "cozinha.";
+  } else {
+    conclusao += "banheiro.";
+  }
+  trajetoriaUsuario.push(conclusao);
+  conclusao = "Na segunda visita, o interruptor " + interruptorSegundoAceso + " controla a lâmpada ";
+  if (lampadaControladaPorPrimeiro) {
+    conclusao += "cozinha.";
+  } else if (lampadaControladaPorSegundo) {
+    conclusao += "quarto.";
+  } else {
+    conclusao += "banheiro.";
+  }
+  trajetoriaUsuario.push(conclusao);
+  conclusao = "Conclusão total: Interruptor 1 liga a lâmpada do quarto, interruptor 2 liga a lâmpada da cozinha e interruptor 3 liga a lâmpada do banheiro.";
+  trajetoriaUsuario.push(conclusao);
+  mostrarTrajetoria();
+}
+</script>
+</body>
+</html>
